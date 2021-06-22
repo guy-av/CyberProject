@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8">
+        <title>Build Level</title>
+
+        <style media="screen">
+            * {
+                margin: 0px;
+                padding: 0px;
+                overflow: hidden;
+            }
+
+            #details {
+                position: absolute;
+                left: 650px;
+                top: 0px;
+            }
+
+            #info {
+                position: absolute;
+                left: 900px;
+                top: 0px;
+            }
+        </style>
+    </head>
+    <body>
+        <canvas id="board">Sorry, your browser does not support HTML canvas.</canvas>
+        <div id="details">
+            <span>X: </span><input type="number" id="x-coor"><br>
+            <span>Y: </span><input type="number" id="y-coor"><br>
+            <span>width: </span><input type="number" id="o-width"><br>
+            <span>height: </span><input type="number" id="o-height"><br>
+            <span>dir-x: </span><input type="number" id="o-dirx"><br>
+            <span>dir-y: </span><input type="number" id="o-diry"><br>
+            <span>power: </span><input type="number" id="o-power"><br>
+            <span>type: </span><input type="text" id="o-type" readonly><br>
+            <button id="generate-btn" onclick="generate()">generate</button>
+        </div>
+
+        <div id="info">
+            <p>
+                b - block<br>
+                d - door<br>
+                k - key<br>
+                r - gravity rotator<br>
+                s - spikes<br>
+                j - spring board<br>
+                f - jet<br>
+                a - crossbow<br>
+                p - player start point<br>
+                delete - remove current selected object<br>
+                escape - stop dragging object<br>
+            </p>
+        </div>
+
+        <script src="index.js" charset="utf-8"></script>
+    </body>
+</html>
