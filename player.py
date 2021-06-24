@@ -52,11 +52,12 @@ class Player(game_objects.GameObject):
                self.y + self.height <= 0 or self.y >= game.Game.HEIGHT
 
     def die(self) -> None:
-        tvx: float = self.vx
-        self.reset()
-        self.vx = tvx
+        if not game.Game.god_mode:
+            tvx: float = self.vx
+            self.reset()
+            self.vx = tvx
 
-        self.is_alive = False
+            self.is_alive = False
 
     def fall(self) -> None:
         if self.is_floating:
