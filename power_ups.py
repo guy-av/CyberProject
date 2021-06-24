@@ -4,6 +4,9 @@ from game_objects import GameObject
 
 
 class PowerUp(GameObject):
+    """
+    Power up class representing the effects and keys which are distributed across all levels
+    """
     def __init__(self, t: int, c: tuple, x: float, y: float) -> None:
         super().__init__(t, c, x, y, 20, 20)
 
@@ -11,14 +14,23 @@ class PowerUp(GameObject):
         self.collected: bool = False
 
     def collect(self) -> None:
+        """
+        Mark power up as collected
+        """
         self.collected = True
 
         self.on_collect()
 
     def on_collect(self) -> None:
+        """
+        Placeholder for effects
+        """
         pass
 
     def update(self) -> None:
+        """
+        Update rotation
+        """
         super().update()
 
         self.degree += 1
@@ -26,6 +38,9 @@ class PowerUp(GameObject):
             self.degree = 0
 
     def render(self, surface, pyg) -> None:
+        """
+        Render the power up to the screen
+        """
         if self.collected:
             return
 
@@ -67,11 +82,17 @@ class PowerUp(GameObject):
 
 
 class Key(PowerUp):
+    """
+    A power up used to unlock doors and progress levels
+    """
     def __init__(self, x: float, y: float) -> None:
         super().__init__(game.Game.TYPE_KEY, game.Game.COLOR_KEY, x, y)
 
 
 class GravityRotator(PowerUp):
+    """
+    A power up used to rotate the level by 90 degrees
+    """
     def __init__(self, x: float, y: float, rd: int) -> None:
         super().__init__(game.Game.TYPE_GRAVITY_ROTATOR, game.Game.COLOR_GRAVITY_ROTATOR, x, y)
         self.rotation_dir: int = rd
@@ -81,5 +102,8 @@ class GravityRotator(PowerUp):
 
 
 class Jet(PowerUp):
+    """
+    A power up used to levitate and float off the ground
+    """
     def __init__(self, x: float, y: float) -> None:
         super().__init__(game.Game.TYPE_JET, game.Game.COLOR_JET, x, y)

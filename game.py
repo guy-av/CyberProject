@@ -13,6 +13,11 @@ from consts import *
 
 
 class Game:
+    """
+    Main game class
+    Handles all game-related constants and game logistics
+    Interacts with the server
+    """
     WIDTH: int = 600
     HEIGHT: int = 600
     GRAVITY: float = 0.3
@@ -94,6 +99,11 @@ class Game:
     god_mode: bool = False
 
     class Button:
+        """
+        Used for easy GUI options
+        Creating menus and entries
+        """
+
         def __init__(self, pos, size, text):
             self.pos = pos
             self.size = size
@@ -101,24 +111,37 @@ class Game:
             self.text = text
 
         def render(self):
+            """
+            Render button to screen
+            """
             Game.draw_text(self.text, self.pos, Game.button_font)
             pyg.draw.rect(Game.surface, Game.COLOR_BLACK, (self.pos[0] - self.half[0],
                                                            self.pos[1] - self.half[1],
                                                            self.size[0], self.size[1]), 4)
 
         def contains(self, mx, my):
+            """
+            Check if mouse hovers over button
+            """
             return self.pos[0] - self.half[0] <= mx <= self.pos[0] + self.half[0] and \
                    self.pos[1] - self.half[1] <= my <= self.pos[1] + self.half[1]
 
     class Renderer(Thread):
+        """
+        A thread to run the render process to increase frame rate whilst keeping 60 FPS update rate
+        """
         def run(self) -> None:
+            """
+            Render all game objects, players and menus
+            """
             while Game.is_running:
                 Game.surface.fill(Game.COLOR_BACKGROUND)
 
+                # when in welcome screen
                 if Game.welcome:
                     Game.draw_text(Game.TITLE, (Game.WIDTH / 2, Game.HEIGHT / 2 - 100), Game.header_font)
                     Game.start_btn.render()
-                else:
+                else:  # when in game screen
                     for obj in Game.get_level_objects():
                         obj.render(Game.surface, pyg)
 
@@ -128,19 +151,23 @@ class Game:
 
                     Game.player1.render(Game.surface, pyg)
 
+                    # show time since game start
                     past = Game.header_font.render(str(Game.frame_cycles), True, Game.COLOR_BLACK)
                     Game.surface.blit(past, (50, 50))
 
+                    # if in god test mode -> show indication
                     if Game.god_mode:
                         god = Game.header_font.render('GOD', True, Game.COLOR_BLACK)
                         Game.surface.blit(god, (500, 50))
 
+                    # in difficulty chooser
                     if Game.difficulty:
                         Game.draw_text('Choose Difficulty', (Game.WIDTH / 2, Game.HEIGHT / 2 - 200), Game.header_font)
                         Game.normal_btn.render()
                         Game.hard_btn.render()
                         Game.extreme_btn.render()
 
+                    # in scoreboard room
                     if Game.score_board:
                         Game.draw_text('Score Board', (Game.WIDTH / 2, Game.HEIGHT / 2 - 200), Game.header_font)
                         sorted_scores = dict(sorted(Game.scores.items(), key=lambda item: item[1]))
@@ -153,6 +180,7 @@ class Game:
                                                (Game.WIDTH / 2 + 100, Game.HEIGHT / 2 + off), Game.header_font)
                                 off += 100
 
+                    # when starting the game
                     if Game.game_start and Game.frame_cycles - Game.begin_cycles < 3:
                         begin_text = Game.header_font.render('Begin!', True, Game.COLOR_BLACK)
                         Game.surface.blit(begin_text, (Game.WIDTH / 2 - begin_text.get_width() / 2,
@@ -162,25 +190,28 @@ class Game:
                 pyg.display.flip()
 
     class Comm(Thread):
+        """
+        A thread to communicate with the server and deliver messages
+        """
         def run(self) -> None:
             while Game.is_running:
                 msg = Game.csocket.recv(SIZE).decode()
-                if msg == DIFF:
+                if msg == DIFF:  # server asking to choose difficulty
                     Game.difficulty = True
-                elif msg.startswith(BEGIN):
+                elif msg.startswith(BEGIN):  # the game shall start
                     Game.game_start = True
                     Game.begin_cycles = Game.frame_cycles
                     Game.csocket.send(ACK.encode())
-                    Game.next_level()
-                    Game.levels = Game.levels[:int(msg.split(':')[1]) + 2]
-                elif msg.startswith(SCORE):
+                    Game.next_level()  # exit lobby level
+                    Game.levels = Game.levels[:int(msg.split(':')[1]) + 2]  # adjust level amount to difficulty
+                elif msg.startswith(SCORE):  # receive scores to show on leaderboard
                     msg_split = msg.split(':')[1:]
                     for i in range(0, len(msg_split) - 1, 2):
                         if msg_split[i] != Game.player1.color:
                             Game.scores[msg_split[i]] = int(msg_split[i + 1])
 
                     Game.csocket.send(f'{Game.frame_cycles}'.encode())
-                elif msg.startswith(POS):
+                elif msg.startswith(POS):  # receive position of other players
                     dic = {}
                     data = msg.split(':')[1:]
                     for i in range(0, len(data) - 1, 2):
@@ -193,25 +224,32 @@ class Game:
                             Game.opponents[color].x = dic[color][1]
                             Game.opponents[color].y = dic[color][2]
 
+                    # when in scoreboard room, send indication and current position for shared lounge effect
                     if Game.current_level == len(Game.levels) - 1:
                         Game.csocket.send(f'{DONE}:{Game.current_level}:{Game.player1.x}:{Game.player1.y}'.encode())
                         for p in Game.opponents.keys():
                             if Game.opponents[p] == Game.player1:
                                 Game.scores[p] = Game.frame_cycles
                                 break
-                    else:
+                    else:  # send current position in level to other players
                         Game.csocket.send(f'{Game.current_level}:{Game.player1.x}:{Game.player1.y}'.encode())
 
             Game.csocket.send(QUIT.encode())
 
     @staticmethod
     def draw_text(text, pos, font):
+        """
+        Draw centered text to surface
+        """
         button_text = font.render(text, True, Game.COLOR_BLACK)
         Game.surface.blit(button_text, (pos[0] - button_text.get_width() / 2,
                                         pos[1] - button_text.get_height() / 2))
 
     @staticmethod
     def initialize() -> None:
+        """
+        Initialize elements and libraries
+        """
         pyg.init()
         pyg.font.init()
 
@@ -247,6 +285,9 @@ class Game:
 
     @staticmethod
     def rotate(rd: int) -> None:
+        """
+        Rotate the level
+        """
         Game.is_rotating = True
 
         for b in Game.get_level_objects():
@@ -254,19 +295,25 @@ class Game:
 
     @staticmethod
     def stop_rotation() -> None:
+        """
+        Stop rotating the level
+        """
         Game.is_rotating = False
 
     @staticmethod
     def run() -> None:
+        """
+        Run the main game loop
+        """
         Game.is_running = True
 
         Game.Renderer().start()
 
         while Game.is_running:
-            if Game.welcome:
+            if Game.welcome:  # welcome screen
                 Game.observe_welcome_events()
                 continue
-            else:
+            else:  # game screen
                 Game.observe_events()
 
             Game.timer.tick(Game.FPS)
@@ -276,6 +323,7 @@ class Game:
 
             Game.update_objects()
 
+            # track time
             if Game.game_start and not Game.score_board:
                 Game.frame_count += 1
                 if Game.frame_count >= 61:
@@ -291,6 +339,9 @@ class Game:
 
     @staticmethod
     def observe_welcome_events() -> None:
+        """
+        Catch events on the welcome screen
+        """
         for e in pyg.event.get():
             if e.type == pyg.QUIT:
                 Game.stop_running()
@@ -308,6 +359,9 @@ class Game:
 
     @staticmethod
     def observe_events() -> None:
+        """
+        Catch events on game screen
+        """
         for e in pyg.event.get():
             if e.type == pyg.QUIT:
                 Game.stop_running()
@@ -351,6 +405,9 @@ class Game:
 
     @staticmethod
     def update_objects() -> None:
+        """
+        Update all game objects in level
+        """
         Game.player1.fall()
         Game.player1.update()
 
@@ -386,6 +443,9 @@ class Game:
 
     @staticmethod
     def next_level() -> None:
+        """
+        Transition to the next level
+        """
         obstacles.Crossbow.count = 0
         Game.current_level += 1
         Game.init_level()
@@ -400,6 +460,14 @@ class Game:
 
     @staticmethod
     def generate_levels() -> None:
+        """
+        Build and list all levels in the game
+        Lobby: 0
+        Normal: 1st -> 3rd
+        Hard: 1st -> 5th
+        Extreme: 1st -> 6th
+        Score Lounge: 7th
+        """
         Game.levels.clear()
 
         # Limbo
@@ -572,6 +640,9 @@ class Game:
 
     @staticmethod
     def init_level() -> None:
+        """
+        Initialize keys for current level
+        """
         Game.total_keys *= 0 if Game.total_keys != 0 else 1
 
         for obj in Game.get_level_objects():

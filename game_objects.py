@@ -3,6 +3,9 @@ import game
 
 
 class GameObject:
+    """
+    Super class for all objects inside the game
+    """
     def __init__(self, t: int, c: tuple, x: float, y: float, w: int, h: int) -> None:
         self.x: float = x
         self.y: float = y
@@ -22,15 +25,24 @@ class GameObject:
         return self.x, self.y, self.width, self.height
 
     def is_colliding(self, rect: tuple) -> bool:
+        """
+        Check intersection with another rectangle
+        """
         return self.x < rect[0] + rect[2] and \
                self.x + self.width > rect[0] and \
                self.y < rect[1] + rect[3] and \
                self.y + self.height > rect[1]
 
     def on_rotation_stop(self) -> None:
+        """
+        Placeholder for acting when Gravity Rotator effect end
+        """
         pass
 
     def rotate_gravity(self, rd: int) -> None:
+        """
+        Implement basic rotation behavior for rotating gravity
+        """
         self.is_rotating = True
         self.rotation_dir = rd
 
@@ -45,6 +57,9 @@ class GameObject:
             self.times_rotated = 3
 
     def rotate_position(self) -> None:
+        """
+        Calculate new position and size after rotation
+        """
         self.angle += 1.5 * self.rotation_dir
 
         if self.angle in (-90, 90):
@@ -77,18 +92,30 @@ class GameObject:
             self.on_rotation_stop()
 
     def clear(self, surface, pyg) -> None:
+        """
+        Paint over the object to cover itself from view thus clearing itself
+        """
         pyg.draw.rect(surface, game.Game.COLOR_BACKGROUND, self.get_rect())
         pyg.draw.rect(surface, game.Game.COLOR_BACKGROUND, self.get_rect(), 2)
 
     def draw_shape(self, surface, pyg) -> None:
+        """
+        Draw the basic shape onto a surface
+        """
         pyg.draw.rect(surface, self.color, self.get_rect())
         pyg.draw.rect(surface, game.Game.COLOR_BLACK, self.get_rect(), 2)
 
     def update(self) -> None:
+        """
+        Update object properties such as position or rotation
+        """
         if self.is_rotating:
             self.rotate_position()
 
     def render(self, surface, pyg) -> None:
+        """
+        Render object to screen
+        """
         if self.is_rotating:
             sur: pyg.Surface = pyg.Surface((game.Game.WIDTH, game.Game.HEIGHT))
             sur.fill(game.Game.COLOR_BACKGROUND)
@@ -105,11 +132,17 @@ class GameObject:
 
 
 class Block(GameObject):
+    """
+    Basic game object, just a block, used for floors, ceilings and walls
+    """
     def __init__(self, x: float, y: float, w: int, h: int) -> None:
         super().__init__(game.Game.TYPE_BLOCK, game.Game.COLOR_BLOCK, x, y, w, h)
 
 
 class Door(GameObject):
+    """
+    Opens a hallway to exit the boundaries of the screen thus progressing to next level
+    """
     def __init__(self, x: float, y: float) -> None:
         super().__init__(game.Game.TYPE_DOOR, game.Game.COLOR_DOOR, x, y, 10, 100)
 
@@ -118,16 +151,25 @@ class Door(GameObject):
         self.open_towards_up: bool = True
 
     def open(self) -> None:
+        """
+        Open the door, start animating
+        """
         self.is_animating_closure = True
         self.open_towards_up = True if self.height > self.width else False
 
     def rotate_gravity(self, rd: int) -> None:
+        """
+        Shift door when rotating gravity
+        """
         super().rotate_gravity(rd)
 
         if self.is_animating_closure:
             self.open_towards_up = not self.open_towards_up
 
     def update(self) -> None:
+        """
+        Update animation status
+        """
         super().update()
 
         if self.is_animating_closure and self.height > 0 and self.width > 0:
@@ -148,14 +190,23 @@ class Door(GameObject):
             self.is_open = True
 
     def render(self, surface, pyg) -> None:
+        """
+        Render door to screen
+        """
         super().render(surface, pyg)
 
 
 class SpringBoard(GameObject):
+    """
+    Game object that launches the player upwards
+    """
     def __init__(self, x: float, y: float) -> None:
         super().__init__(game.Game.TYPE_SPRINGBOARD, game.Game.COLOR_SPRINGBOARD, x, y, 80, 10)
 
     def draw_shape(self, surface, pyg) -> None:
+        """
+        Draw the springboard onto a surface
+        """
         pyg.draw.rect(surface, self.color[0], (self.x, self.y, self.width, 10))
         pyg.draw.rect(surface, game.Game.COLOR_BLACK, (self.x, self.y, self.width, 10), 2)
 

@@ -5,17 +5,29 @@ from power_ups import PowerUp
 
 
 class Obstacle(GameObject):
+    """
+    Obstacle super class, represents an obstacle that tackles the player
+    """
+
     def __init__(self, t: int, c: tuple, x: float, y: float, w: int, h: int) -> None:
         super().__init__(t, c, x, y, w, h)
 
 
 class Spikes(Obstacle):
+    """
+    Pointy metal pieces on the ground
+    Spikes stab the player and kills it
+    """
+
     def __init__(self, x: float, y: float, w: int, h: int, d: int) -> None:
         super().__init__(game.Game.TYPE_SPIKES, game.Game.COLOR_SPIKES, x, y, w, h)
 
         self.dir: int = d
 
     def on_rotation_stop(self) -> None:
+        """
+        Act on Gravity Rotator effect end
+        """
         if self.rotation_dir == game.Game.LEFT:
             if self.times_rotated % 2 == 0:
                 self.dir *= -1
@@ -24,6 +36,9 @@ class Spikes(Obstacle):
                 self.dir *= -1
 
     def draw_shape(self, surface, pyg) -> None:
+        """
+        Render the spikes to the screen
+        """
         if self.width > self.height:
             self.x = int(self.x)
             for x in range(self.x, self.x + self.width, 10):
@@ -49,9 +64,17 @@ class Spikes(Obstacle):
 
 
 class Crossbow(GameObject):
+    """
+    A wooden claw that launches arrows at undetermined rate
+    """
     count = 0
 
     class Arrow(GameObject):
+        """
+        A launched arrow, moves in a straight line
+        Kills player on impact
+        """
+
         def __init__(self, x: float, y: float, dx: int, dy: int) -> None:
             super().__init__(game.Game.TYPE_ARROW, game.Game.COLOR_ARROW, x, y, 30, 9)
 
@@ -70,6 +93,9 @@ class Crossbow(GameObject):
             return self.x, self.y + 3, self.width, self.height - 6
 
         def render(self, surface, pyg) -> None:
+            """
+            Render arrow to the screen
+            """
             image: pyg.Surface = game.Game.sprite_arrow
             image_surf: pyg.Surface = image.convert()
             image_surf = pyg.transform.rotate(
@@ -83,6 +109,9 @@ class Crossbow(GameObject):
             surface.blit(image_surf, (self.x, self.y))
 
         def update(self) -> None:
+            """
+            Update arrow movement
+            """
             self.x += self.vx
             self.y += self.vy
 
@@ -114,6 +143,9 @@ class Crossbow(GameObject):
         Crossbow.count += 1
 
     def draw_shape(self, surface, pyg) -> None:
+        """
+        Draw crossbow to a surface
+        """
         if self.dx != 0:
             pyg.draw.rect(surface, self.color, (self.x, self.y, self.width, 10))
             pyg.draw.rect(surface, game.Game.COLOR_BLACK, (self.x, self.y, self.width, 10), 2)
@@ -142,6 +174,9 @@ class Crossbow(GameObject):
         pyg.draw.rect(surface, game.Game.COLOR_BLACK, (x, y, w, h), 2)
 
     def update(self) -> None:
+        """
+        Update crossbow state, determine whether to launch an arrow
+        """
         super().update()
 
         if not self.arrow.is_launched:
@@ -154,6 +189,9 @@ class Crossbow(GameObject):
             self.arrow.update()
 
     def render(self, surface, pyg) -> None:
+        """
+        Render crossbow and arrow to the screen
+        """
         super().render(surface, pyg)
 
         if self.arrow.is_launched:
