@@ -154,6 +154,9 @@ class Room(threading.Thread):
             self.start()
 
     def is_full(self):
+        """
+        Check if room is full
+        """
         return len(self.players) == 4
 
 

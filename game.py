@@ -335,6 +335,9 @@ class Game:
 
     @staticmethod
     def stop_running() -> None:
+        """
+        Stops running the game
+        """
         Game.is_running = False
 
     @staticmethod
@@ -435,10 +438,16 @@ class Game:
 
     @staticmethod
     def add_level(lvl: tuple) -> None:
+        """
+        Adds level
+        """
         Game.levels.append(lvl)
 
     @staticmethod
     def new_start_point(x: float, y: float) -> None:
+        """
+        Creates player start point
+        """
         Game.start_points.append((x, y))
 
     @staticmethod
@@ -456,6 +465,9 @@ class Game:
 
     @staticmethod
     def get_level_objects() -> tuple:
+        """
+        Return level objects
+        """
         return Game.levels[Game.current_level]
 
     @staticmethod
